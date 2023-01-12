@@ -36,5 +36,51 @@ app.get("/jokes", async (req, res, next) => {
   }
 });
 
+app.post("/jokes", async (req, res) => {
+  const { joke, tags } = req.body;
+  const newJoke = await Joke.create({ joke, tags });
+  res.json(newJoke);
+});
+
+app.delete("/jokes/:jokeId", async (req, res, next) => {
+  const { jokeId } = req.params;
+  try {
+    Joke.destroy({
+      where: {
+        id: jokeId,
+      },
+    });
+    res.send(`Joke ${jokeId} deleted`);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
+app.put("/jokes/:jokeId", async (req, res, next) => {
+  const { jokeId } = req.params;
+  const { joke, tags } = req.body;
+  try {
+    let editJoke = await Joke.findOne({
+      where: {
+        id: jokeId,
+      },
+    });
+    if (joke === undefined) {
+      editJoke.tags = tags;
+    } else if (tags === undefined) {
+      editJoke.joke = joke;
+    } else {
+      editJoke.joke = joke;
+      editJoke.tags = tags;
+    }
+    editJoke.save();
+    res.send(`Joke ${jokeId} updated`);
+  } catch (error) {
+    console.error(error);
+    next(error);
+  }
+});
+
 // we export the app, not listening in here, so that we can run tests
 module.exports = app;
